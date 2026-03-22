@@ -1,5 +1,9 @@
+use axum::{routing::post, Router};
+use std::sync::Arc;
+
 mod config;
 mod error;
+mod handlers;
 mod models;
 mod queue;
 
@@ -12,9 +16,16 @@ async fn main() -> anyhow::Result<()> {
         .init();
 
     let config = config::Config::from_env()?;
-    let _publisher = queue::publisher::Publisher::connect(&config).await?;
+    let publisher = queue::publisher::Publisher::connect(&config).await?;
 
-    tracing::info!("telemetry collector starting...");
+    let app = Router::new()
+        .route("/telemetry", post(handlers::telemetry::post_telemetry))
+        .with_state(Arc::new(publisher));
+
+    let addr = format!("{}:{}", config.server_host, config.server_port);
+    tracing::info!("listening on {addr}");
+    let listener = tokio::net::TcpListener::bind(&addr).await?;
+    axum::serve(listener, app).await?;
 
     Ok(())
 }
