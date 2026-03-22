@@ -1,6 +1,7 @@
 mod config;
 mod error;
 mod models;
+mod queue;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -11,6 +12,8 @@ async fn main() -> anyhow::Result<()> {
         .init();
 
     let config = config::Config::from_env()?;
+    let _publisher = queue::publisher::Publisher::connect(&config).await?;
+
     tracing::info!("telemetry collector starting...");
 
     Ok(())
