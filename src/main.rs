@@ -2,6 +2,7 @@ use axum::{routing::post, Router};
 use std::sync::Arc;
 
 mod config;
+mod db;
 mod error;
 mod handlers;
 mod models;
@@ -16,7 +17,19 @@ async fn main() -> anyhow::Result<()> {
         .init();
 
     let config = config::Config::from_env()?;
+
+    let pool = db::build_pool(&config.sqlite_path, config.db_pool_size)?;
+    db::run_migrations(&pool)?;
+
     let publisher = queue::publisher::Publisher::connect(&config).await?;
+
+    let consumer_pool = pool.clone();
+    let consumer_config = config.clone();
+    tokio::spawn(async move {
+        if let Err(e) = queue::consumer::start_consumer(consumer_pool, consumer_config).await {
+            tracing::error!("consumer encerrou com erro: {e}");
+        }
+    });
 
     let app = Router::new()
         .route("/telemetry", post(handlers::telemetry::post_telemetry))
