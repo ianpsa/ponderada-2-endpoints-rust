@@ -68,23 +68,17 @@ pub fn extract_reading(payload: &TelemetryPayload) -> Result<SensorReading, Stri
     Ok(SensorReading {
         device_id: payload.device_id.clone(),
         timestamp: payload.timestamp,
-        temperature: matches!(payload.sensor_type, SensorType::Temperature).then_some(
-            analog.ok_or("temperature value must be a number")?,
-        ),
-        humidity: matches!(payload.sensor_type, SensorType::Humidity).then_some(
-            analog.ok_or("humidity value must be a number")?,
-        ),
-        presence: matches!(payload.sensor_type, SensorType::Presence).then_some(
-            discrete.ok_or("presence value must be a boolean")?,
-        ),
-        vibration: matches!(payload.sensor_type, SensorType::Vibration).then_some(
-            analog.ok_or("vibration value must be a number")?,
-        ),
-        luminosity: matches!(payload.sensor_type, SensorType::Luminosity).then_some(
-            analog.ok_or("luminosity value must be a number")?,
-        ),
-        level: matches!(payload.sensor_type, SensorType::ReservoirLevel).then_some(
-            analog.ok_or("level value must be a number")?,
-        ),
+        temperature: matches!(payload.sensor_type, SensorType::Temperature).then(||
+            analog.ok_or("temperature value must be a number")).transpose()?,
+        humidity: matches!(payload.sensor_type, SensorType::Humidity).then(||
+            analog.ok_or("humidity value must be a number")).transpose()?,
+        presence: matches!(payload.sensor_type, SensorType::Presence).then(||
+            discrete.ok_or("presence value must be a boolean")).transpose()?,
+        vibration: matches!(payload.sensor_type, SensorType::Vibration).then(||
+            analog.ok_or("vibration value must be a number")).transpose()?,
+        luminosity: matches!(payload.sensor_type, SensorType::Luminosity).then(||
+            analog.ok_or("luminosity value must be a number")).transpose()?,
+        level: matches!(payload.sensor_type, SensorType::ReservoirLevel).then(||
+            analog.ok_or("level value must be a number")).transpose()?,
     })
 }

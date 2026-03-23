@@ -67,13 +67,16 @@ Cenário: ramp-up de 10 -> 50 -> 100 VUs ao longo de 2min30s.
 
 | Métrica | Valor |
 |---------|-------|
-| throughput médio | ~450 req/s |
-| latência p50 | 12ms |
-| latência p95 | 45ms |
-| latência p99 | 120ms |
+| total de requests | 55.271 |
+| throughput médio | ~368 req/s |
+| latência média | 1.64ms |
+| latência p50 | 1.47ms |
+| latência p95 | 3.09ms |
+| latência máxima | 94.69ms |
 | taxa de erro | 0% |
+| checks passando | 100% (110.542/110.542) |
 
-Aguentou bem os 100 VUs sem perder mensagem. A fila absorve os picos e o consumer vai processando no ritmo dele.
+Aguentou bem os 100 VUs sem perder nenhuma mensagem. A fila do RabbitMQ ficou com 0 mensagens pendentes (ready=0) após o teste, confirmando que o consumer processou tudo com sucesso. A latência p95 de 3.09ms mostra que o pipeline está bem otimizado.
 
 ## Estrutura do Projeto
 

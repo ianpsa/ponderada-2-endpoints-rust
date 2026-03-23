@@ -2,8 +2,8 @@ use anyhow::Result;
 use futures::StreamExt;
 use lapin::{
     options::{
-        BasicAckOptions, BasicConsumeOptions, BasicNackOptions, ExchangeDeclareOptions,
-        QueueBindOptions, QueueDeclareOptions,
+        BasicAckOptions, BasicConsumeOptions, BasicNackOptions, BasicQosOptions,
+        ExchangeDeclareOptions, QueueBindOptions, QueueDeclareOptions,
     },
     types::FieldTable,
     Connection, ConnectionProperties, ExchangeKind,
@@ -59,6 +59,10 @@ async fn run_consumer(pool: &DbPool, config: &Config) -> Result<()> {
             QueueBindOptions::default(),
             FieldTable::default(),
         )
+        .await?;
+
+    channel
+        .basic_qos(10, BasicQosOptions::default())
         .await?;
 
     let mut consumer = channel
