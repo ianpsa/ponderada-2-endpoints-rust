@@ -27,7 +27,8 @@ pub fn run_migrations(pool: &DbPool) -> Result<()> {
             vibration REAL,
             luminosity REAL,
             level REAL
-        );",
+        );
+        CREATE INDEX IF NOT EXISTS idx_device_timestamp ON telemetry(device_id, timestamp);",
     )?;
     Ok(())
 }
@@ -48,6 +49,6 @@ pub fn insert_reading(pool: &DbPool, r: &SensorReading) -> Result<()> {
             r.level,
         ],
     )?;
-    tracing::trace!("dado inserido no sqlite");
+    tracing::trace!("inserted reading to sqlite");
     Ok(())
 }
