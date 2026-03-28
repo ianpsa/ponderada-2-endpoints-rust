@@ -78,6 +78,51 @@ Cenário: ramp-up de 10 -> 50 -> 100 VUs ao longo de 2min30s.
 
 Aguentou bem os 100 VUs sem perder nenhuma mensagem. A fila do RabbitMQ ficou com 0 mensagens pendentes (ready=0) após o teste, confirmando que o consumer processou tudo com sucesso. A latência p95 de 3.09ms mostra que o pipeline está bem otimizado.
 
+## Atividade Ponderada 2: Integração com Raspberry Pi Pico W
+
+Esta fase do projeto integra um dispositivo embarcado (Raspberry Pi Pico W) para coleta de dados de sensores físicos e envio para o backend assíncrono.
+
+### Especificações Técnicas
+- **Framework:** Arduino Framework (C++).
+- **Plataforma de Simulação:** Wokwi.
+- **Protocolo de Comunicação:** HTTP/HTTPS com JSON.
+- **Gerenciamento de Estado:** Máquina de Estados Finita (FSM) com 3 estados principais (Conexão, Leitura, Envio).
+
+### Sensores Integrados
+| Sensor | Tipo | Pino GPIO | Range/Escala | Descrição |
+|--------|------|-----------|--------------|-----------|
+| **PIR (HC-SR501)** | Digital | 15 | 0 ou 1 | Detecta movimento/presença. |
+| **LDR (Fotoresistor)**| Analógico| 26 (ADC0) | 0 a 100% | Mede a luminosidade ambiente. |
+
+### Configuração e Gravação
+1. **SSID/Senha:** No arquivo `pico-firmware.ino`, altere as variáveis `wifi_nome` e `wifi_senha`. No Wokwi, use `Wokwi-GUEST` e senha vazia.
+2. **Endpoint:** Altere `url_servidor` para o seu link do Localtunnel (ex: `https://<url_servidor>/telemetry`).
+3. **Compilação:** Utilize a IDE do Arduino com a placa "Raspberry Pi Pico W" instalada ou o simulador Wokwi carregando o arquivo `.ino` e o `diagram.json`.
+
+### Diagrama de Conexão (Wokwi)
+- **PIR:** VCC -> 5V, GND -> GND, OUT -> GP15.
+- **LDR:** Conectado em divisor de tensão no pino GP26 (ADC0).
+
+### Evidências de Funcionamento
+- **Logs Seriais:** O firmware loga a sincronização de tempo (NTP), o estado da conexão WiFi e o status do envio (HTTP 202).
+- **Backend:** O servidor Axum loga `Recebido:` e a persistência no banco SQLite pode ser verificada via comando `sqlite3`.
+
+### Como Rodar os Testes de Código (Rust)
+Para garantir que a lógica de conversão e os modelos de dados estão corretos, adicionei testes unitários no backend. Para rodá-los:
+```bash
+cargo test
+```
+*Estes testes validam se o JSON recebido do Wokwi é transformado corretamente em uma leitura válida para o banco.*
+
+### Como Ver os Dados no Banco (SQLite)
+Como o banco de dados roda dentro de um volume do Docker para persistência, você deve usar o seguinte comando para visualizar as leituras em tempo real:
+```bash
+sudo docker run --rm -v ponderada-2-endpoints_sqlite_data:/data alpine sh -c "apk add --no-cache sqlite && sqlite3 -column -header /data/telemetry.db 'SELECT * FROM telemetry ORDER BY id DESC LIMIT 10;'"
+```
+*Este comando baixa uma imagem temporária do SQLite e consulta o arquivo `/data/telemetry.db` montado no volume.*
+
+---
+
 ## Estrutura do Projeto
 
 ```

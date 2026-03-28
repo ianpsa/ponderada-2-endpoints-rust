@@ -1,2 +1,22 @@
+# Rust
 /target
+Cargo.lock
+
+# SQLite / Database
+*.db
+*.db-shm
+*.db-wal
+data/
+data_container.db
+data_container_check.db
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
 .env

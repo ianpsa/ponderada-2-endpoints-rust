@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "author": "Anonymous maker",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-pi-pico-w", "id": "pico", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-pir-motion-sensor", "id": "pir1", "top": -150, "left": -100, "attrs": {} },
+    { "type": "wokwi-potentiometer", "id": "pot1", "top": -150, "left": 100, "attrs": { "vmax": "3.3" } }
+  ],
+  "connections": [
+    [ "pico:GP15", "pir1:OUT", "green", [] ],
+    [ "pico:3V3", "pir1:VCC", "red", [] ],
+    [ "pico:GND.1", "pir1:GND", "black", [] ],
+    [ "pico:GP26", "pot1:SIG", "blue", [] ],
+    [ "pico:3V3", "pot1:VCC", "red", [] ],
+    [ "pico:GND.2", "pot1:GND", "black", [] ]
+  ],
+  "dependencies": {}
+}

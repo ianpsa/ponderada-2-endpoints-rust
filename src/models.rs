@@ -82,3 +82,35 @@ pub fn extract_reading(payload: &TelemetryPayload) -> Result<SensorReading, Stri
             analog.ok_or("level value must be a number")).transpose()?,
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn test_extract_luminosity() {
+        let payload = TelemetryPayload {
+            device_id: "test-device".to_string(),
+            timestamp: Utc::now(),
+            sensor_type: SensorType::Luminosity,
+            reading_nature: ReadingNature::Analog,
+            value: json!(75.5),
+        };
+        let reading = extract_reading(&payload).unwrap();
+        assert_eq!(reading.luminosity, Some(75.5));
+    }
+
+    #[test]
+    fn test_extract_presence() {
+        let payload = TelemetryPayload {
+            device_id: "test-device".to_string(),
+            timestamp: Utc::now(),
+            sensor_type: SensorType::Presence,
+            reading_nature: ReadingNature::Discrete,
+            value: json!(true),
+        };
+        let reading = extract_reading(&payload).unwrap();
+        assert_eq!(reading.presence, Some(1));
+    }
+}

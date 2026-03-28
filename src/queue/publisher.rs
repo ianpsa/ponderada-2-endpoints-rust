@@ -66,7 +66,13 @@ impl Publisher {
 
     pub async fn publish(&self, payload: &TelemetryPayload) -> Result<()> {
         let body = serde_json::to_vec(payload)?;
-        self.channel
+        
+        // Verifica se o canal ainda está aberto antes de publicar
+        if !self.channel.status().connected() {
+            tracing::error!("Canal do RabbitMQ está fechado! Tentando publicar mesmo assim...");
+        }
+
+        match self.channel
             .basic_publish(
                 &self.exchange,
                 &self.routing_key,
@@ -74,9 +80,17 @@ impl Publisher {
                 &body,
                 BasicProperties::default().with_delivery_mode(2),
             )
-            .await?
-            .await?;
-        Ok(())
+            .await {
+                Ok(confirmation) => {
+                    confirmation.await?;
+                    tracing::info!("Mensagem publicada com sucesso: device={}", payload.device_id);
+                    Ok(())
+                }
+                Err(e) => {
+                    tracing::error!("Falha crítica ao publicar no RabbitMQ: {}", e);
+                    Err(e.into())
+                }
+            }
     }
 }
 
